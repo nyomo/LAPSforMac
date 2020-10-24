@@ -9,6 +9,9 @@
 #-  macOS version 10.14 or later. ( Because I tested this with macOS 10.14 Mojave or later ).
 #-
 
+# Debug flag; 'on' or other.
+debug=off
+
 # Show help.
 if [ "$#" -eq 0 ]; then
     /usr/bin/grep ^#- "$0" | /usr/bin/cut -c 4-
@@ -16,7 +19,8 @@ if [ "$#" -eq 0 ]; then
 fi
 
 # Check OS Version.
-if [ "$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. 'V = $1 * 100 + $2 {print V}' )" -lt 1014 ]; then
+osversion="$( /usr/bin/sw_vers -productVersion | /usr/bin/awk -F. 'V = $1 * 100 + $2 {print V}' )"
+if [ "$osversion" -lt 1014 ]; then
     /usr/bin/grep ^#- "$0" | /usr/bin/cut -c 4-
     exit 1
 fi
@@ -73,14 +77,24 @@ function retrievePassword(){
                 "${apiHostURL}/JSSResource/computers/udid/${udid}/subset/extension_attributes" \
                 -w "HTTPSTATUS:%{http_code}" )"
 
+    if [ "${debug:-off}" = on ]; then
+        echo "$response" > /tmp/response.xml
+    fi
+
     httpStatus=$( echo "$response" | /usr/bin/tr -d '\n' | /usr/bin/sed -e 's/.*HTTPSTATUS://')
     if [ "$httpStatus" -ne 200 ];then
         scriptLogging "Cannot get stored password. JSS api call is failed with HTTP status is $httpStatus." 2
         exit 1
     fi
 
-    echo "$response" | /usr/bin/sed -e 's/HTTPSTATUS\:.*//g' | \
-        /usr/bin/xpath "//extension_attribute[name=\"$extensionAttribute\"]/value/text()" 2>/dev/null
+    if [ "$osversion" -le 1015 ]; then
+        echo "$response" | /usr/bin/sed -e 's/HTTPSTATUS\:.*//g' | \
+            /usr/bin/xpath "//extension_attribute[name=\"$extensionAttribute\"]/value/text()" 2>/dev/null
+    else
+        # mac OS 11.0 Big Sur or later
+        echo "$response" | /usr/bin/sed -e 's/HTTPSTATUS\:.*//g' | \
+            /usr/bin/xpath -e "//extension_attribute[name=\"$extensionAttribute\"]/value/text()" 2>/dev/null
+    fi
 }
 
 function uploadPassword(){
