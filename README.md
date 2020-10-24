@@ -5,7 +5,7 @@ Local Administrator Password Solution for Mac
 macOS_LAPS.sh randomly changes the password of admin account of macOS computer and updates the inventory record of the macOS computer. You can securely manage the administrator password of the macOS computers being managed.
 
 ## Requirement
-- macOS 10.14 or later.
+- macOS 10.14, macOS 10.15 and macOS 11.0 or later
 - Every macOS computer has same initial password when it enrolled.
 
 ## Jamf Computer Extension Attribute
