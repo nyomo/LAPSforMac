@@ -9,8 +9,10 @@
 #-  macOS version 10.14 or later. ( Because I tested this with macOS 10.14 Mojave or later ).
 #-
 
-# Debug flag; 'on' or other.
-debug=off
+# Debug flag
+if [ "$1" = "debug_mode" ]; then
+    debug=on
+fi
 
 # Show help.
 if [ "$#" -eq 0 ]; then
