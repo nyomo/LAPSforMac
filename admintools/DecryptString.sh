@@ -10,6 +10,17 @@
 #-  eval $(path/to/EncryptString.sh plainTextString)
 #-  decryptedString=$(path/to/DecryptString.sh -e $encryptedString -p $passphrase -s $salt)
 #-
+if [ -f "/etc/os-release" ]
+then
+ GREP="/bin/grep"
+ OPENSSL="/usr/bin/openssl"
+ OPENSSLOPT=" -md md5 "
+else
+ GREP="/usr/bin/grep"
+ OPENSSLOPT=""
+ OPENSSL="/usr/local/bin/openssl"
+fi
+
 
 while getopts e:f:s:p:h sw
 do
@@ -45,9 +56,10 @@ then
     ShowHelp=yes
 fi
 if [ "${ShowHelp:-no}" = yes ]; then
-    /usr/bin/grep ^#- "$0" | /usr/bin/cut -c 4-
+    $GREP ^#- "$0" | /usr/bin/cut -c 4-
     exit 1
 fi
 
-echo "$EncryptedString" | /usr/bin/openssl enc -aes256 -d -a -A -S "$Salt" -k "$PassPhrase"
+echo "$EncryptedString" | $OPENSSL enc -aes256 -d -a -A -S "$Salt" -k "$PassPhrase" $OPENSSLOPT
 exit "${PIPESTATUS[1]}"
+
